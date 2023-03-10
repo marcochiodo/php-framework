@@ -1,0 +1,10 @@
+/nbproject/private/
+.buildpath
+composer.lock
+vendor
+.project*
+.settings
+tests/phpunit.phar
+tests/.phpunit.result.cache
+/auth.json
+/composer.phar

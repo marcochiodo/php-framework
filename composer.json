@@ -1,0 +1,30 @@
+{
+	"name": "mrblue/framework",
+	"type": "library",
+    "description": "PHP Framework",
+	"keywords": [],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Marco Chiodo",
+			"email": "marcochio94@gmail.com"
+		}
+	],
+	"require": {
+		"php": "^8.2",
+		"ext-json" : "*"
+	},
+	"require-dev": {
+		"ext-mongodb": "^1.10",
+		"mongodb/mongodb": "^1.9"
+	},
+	"suggest": {
+		"ext-mongodb": "^1.10",
+		"mongodb/mongodb": "^1.9"
+	},
+	"autoload": {
+		"psr-4": {
+			"mrblue\\mvc\\": "src/"
+		}
+	}
+}
