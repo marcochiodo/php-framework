@@ -24,7 +24,7 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"mrblue\\mvc\\": "src/"
+			"mrblue\\framework\\": "src/"
 		}
 	}
 }

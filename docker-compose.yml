@@ -1,0 +1,23 @@
+version: "3.7"
+services:
+  app:
+    image: sigblue/apache-php:82-light
+    volumes:
+      - type: bind
+        source: .
+        target: /srv
+      - type: bind
+        source: ${COMPOSER_PHAR:?err}
+        target: /srv/composer.phar
+      - type: bind
+        source: ${PHPUNIT:?err}
+        target: /srv/tests/phpunit.phar
+    working_dir: /srv
+    user: developer
+    stdin_open: true 
+    tty: true
+    init: true
+    command: php -a
+  mongodb:
+    image: mongo:6.0
+    ports: ["27017:27017"]

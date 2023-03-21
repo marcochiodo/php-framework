@@ -8,3 +8,4 @@ tests/phpunit.phar
 tests/.phpunit.result.cache
 /auth.json
 /composer.phar
+/dev
