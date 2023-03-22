@@ -3,8 +3,6 @@ namespace mrblue\framework\Model;
 
 abstract class MongodbModel extends Model {
 
-	CONST PRIMARY_FIELD = '_id';
-
 	CONST DB_FIELDS_MAP = [
 		'id' => '_id'
 	];
