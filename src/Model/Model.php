@@ -117,6 +117,10 @@ abstract class Model implements \JsonSerializable {
 						continue;
 					}
 				}
+			} else {
+				if( $value instanceof Model ){
+					$value = $value->exportToDb();
+				}
 			}
 
 			if( isset(static::DB_FIELDS_MAP[$key]) ){
