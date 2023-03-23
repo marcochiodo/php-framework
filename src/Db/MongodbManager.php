@@ -30,10 +30,20 @@ class MongodbManager {
 	}
 	
 	function get( mixed $_id ) :?MongodbModel {
-		$Document = $this->Collection->findOne(['_id' => $_id],[
+		return $this->queryOne(['_id' => $_id]);
+	}
+
+	function queryOne( mixed $query , array $db_options = [] ) :?MongodbModel {
+		$document = $this->Collection->findOne($query,[
 			'typeMap' => self::TYPE_MAP
-		]);
-		return $Document ? new $this->model_class($Document) : null;
+		] + $db_options);
+
+		if( ! $document ){
+			return null;
+		}
+
+		$class_name = $this->model_class::getFinalClass($document);
+		return new $class_name($document);
 	}
 
 	function query( mixed $query , array $db_options = [] ) : ModelList {
