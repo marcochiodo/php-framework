@@ -99,19 +99,24 @@ abstract class Model implements \JsonSerializable {
 			$key = $ReflectionProperty->getName();
 			$prop_type = self::getReflectionPropertyType($ReflectionProperty);
 			$value = $this->{$key};
-			$submodel_require_update = false;
+
 			if( $value instanceof ModelList || ($prop_type && is_a($prop_type,ModelList::class,true)) ){
 				continue;
-			} elseif( $value instanceof Model ){
-				$value = $value->exportToDb($updated_only);
-				if( $value ){
-					$submodel_require_update = true;
-				} else {
-					continue;
-				}
 			}
-			if( $updated_only && ! in_array($key,$this->__updated_fields) && ! $submodel_require_update ){
-				continue;
+
+			if( $updated_only ){
+
+				if( in_array($key,$this->__updated_fields) ){
+					if( $value instanceof Model ){
+						$value = $value->exportToDb();
+					}
+				} else {
+					if( $value instanceof Model ){
+						$value = $value->exportToDb(true);
+					} else {
+						continue;
+					}
+				}
 			}
 
 			if( isset(static::DB_FIELDS_MAP[$key]) ){
