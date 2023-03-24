@@ -7,6 +7,8 @@ use mrblue\framework\Model\MongodbModel;
 
 class MongodbManager {
 
+	CONST SEQUENCES_PATH = '_sequences';
+
 	CONST TYPE_MAP = [
 		'array' => 'array',
 		'document' => 'array',
@@ -78,13 +80,23 @@ class MongodbManager {
 		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
 
-	function inc( MongodbModel $Model , array $values ) :?bool {
+	function incSeq( MongodbModel $Model , string $field , int|float $amount ) :int|float|false {
 
-		$this->lastUpdateResult = $this->Collection->updateOne( $Model->getDbRetrieveQuery(),[
-			'$inc' => $values
+		$document = $this->Collection->findOneAndUpdate($Model->getDbRetrieveQuery(),[
+			'$inc' => [static::SEQUENCES_PATH.'.'.$field => $amount
+			]
+		],[
+            'projection' => [
+				static::SEQUENCES_PATH.'.'.$field => 1
+			],
+			'returnDocument' => \MongoDB\Operation\FindOneAndUpdate::RETURN_DOCUMENT_AFTER
 		]);
 
-		return (bool) $this->lastUpdateResult->getModifiedCount();
+		if( ! $document ){
+			return false;
+		}
+		
+		return $document[static::SEQUENCES_PATH][$field];
 	}
 
 	function delete( MongodbModel $Model ) : bool {
