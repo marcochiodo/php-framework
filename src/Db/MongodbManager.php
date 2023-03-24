@@ -78,6 +78,15 @@ class MongodbManager {
 		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
 
+	function inc( MongodbModel $Model , array $values ) :?bool {
+
+		$this->lastUpdateResult = $this->Collection->updateOne( $Model->getDbRetrieveQuery(),[
+			'$inc' => $values
+		]);
+
+		return (bool) $this->lastUpdateResult->getModifiedCount();
+	}
+
 	function delete( MongodbModel $Model ) : bool {
 		
 		$this->lastDeleteResult = $this->Collection->deleteOne( $Model->getDbRetrieveQuery() );
