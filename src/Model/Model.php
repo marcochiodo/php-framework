@@ -113,6 +113,9 @@ abstract class Model implements \JsonSerializable {
 				} else {
 					if( $value instanceof Model ){
 						$value = $value->exportToDb(true);
+						if( ! $value ){
+							continue;
+						}
 					} else {
 						continue;
 					}
