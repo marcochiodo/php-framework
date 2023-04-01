@@ -83,6 +83,17 @@ class ModelList implements \Iterator , \Countable , \ArrayAccess , \JsonSerializ
 		return null;
 	}
 
+	function remove( Model $Item ) :void {
+		foreach ( $this->storage as $offset => $item ){
+			if( $Item === $item['class'] ){
+				$this->offsetUnset($offset);
+				return;
+			}
+		}
+
+		throw new \InvalidArgumentException('Item to delete not exists');
+	}
+
 	function filter( string $field , mixed $is , bool $strict = false ) :static {
 
 		$FilteredList = new static($this->class_name);
@@ -269,7 +280,10 @@ class ModelList implements \Iterator , \Countable , \ArrayAccess , \JsonSerializ
 		$this->storage[$offset]['class'] = $this->parse($value);
 	}
 	function offsetUnset(mixed $offset): void {
-		unset($this->storage[$offset]);
+		array_slice($this->storage,$offset,1);
+		if( $this->position > 0 && $this->position >= $offset ){
+			--$this->position;
+		}
 	}
 
 	function hasAttribute( $key ) {
