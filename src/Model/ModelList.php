@@ -280,7 +280,7 @@ class ModelList implements \Iterator , \Countable , \ArrayAccess , \JsonSerializ
 		$this->storage[$offset]['class'] = $this->parse($value);
 	}
 	function offsetUnset(mixed $offset): void {
-		array_slice($this->storage,$offset,1);
+		array_splice($this->storage,$offset,1);
 		if( $this->position > 0 && $this->position >= $offset ){
 			--$this->position;
 		}
