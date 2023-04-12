@@ -60,6 +60,10 @@ class MongodbManager {
 		}
 	}
 
+	function count( mixed $query ) : int {
+		return $this->Collection->countDocuments( $query );
+	}
+
 	function insert( MongodbModel $Model ) : bool {
 		
 		$this->lastInsertOneResult = $this->Collection->insertOne( $Model->getDbInsertQuery() );
