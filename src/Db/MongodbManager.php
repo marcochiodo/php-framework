@@ -71,12 +71,16 @@ class MongodbManager {
 		return (bool) $this->lastInsertOneResult->getInsertedCount();
 	}
 
-	function update( MongodbModel $Model ) : ?bool {
+	function update( MongodbModel $Model , array $if_match = [] ) : ?bool {
 		
 		$update_query = $Model->getDbUpdateQuery();
 
 		if( ! $update_query ){
 			return null;
+		}
+
+		if( $if_match ){
+			$update_query = array_replace_recursive($if_match,$update_query);
 		}
 
 		$this->lastUpdateResult = $this->Collection->updateOne( $Model->getDbRetrieveQuery() , $update_query );
@@ -103,9 +107,15 @@ class MongodbManager {
 		return $document[static::SEQUENCES_PATH][$field];
 	}
 
-	function delete( MongodbModel $Model ) : bool {
+	function delete( MongodbModel $Model , array $if_match = [] ) : bool {
 		
-		$this->lastDeleteResult = $this->Collection->deleteOne( $Model->getDbRetrieveQuery() );
+		$delete_query = $Model->getDbRetrieveQuery();
+
+		if( $if_match ){
+			$delete_query = array_replace_recursive($if_match,$delete_query);
+		}
+
+		$this->lastDeleteResult = $this->Collection->deleteOne( $delete_query );
 
 		return (bool) $this->lastDeleteResult->getDeletedCount();
 	}
