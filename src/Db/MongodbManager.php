@@ -79,11 +79,13 @@ class MongodbManager {
 			return null;
 		}
 
+		$retrieve_query = $Model->getDbRetrieveQuery();
+
 		if( array_key_exists('if_match',$options) && $options['if_match'] ){
-			$update_query = array_replace_recursive($options['if_match'],$update_query);
+			$retrieve_query = array_replace_recursive($options['if_match'],$retrieve_query);
 		}
 
-		$this->lastUpdateResult = $this->Collection->updateOne( $Model->getDbRetrieveQuery() , $update_query );
+		$this->lastUpdateResult = $this->Collection->updateOne( $retrieve_query , $update_query );
 
 		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
