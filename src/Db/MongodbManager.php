@@ -71,7 +71,7 @@ class MongodbManager {
 		return (bool) $this->lastInsertOneResult->getInsertedCount();
 	}
 
-	function update( MongodbModel $Model , array $if_match = [] ) : ?bool {
+	function update( MongodbModel $Model , array $options = [] ) : ?bool {
 		
 		$update_query = $Model->getDbUpdateQuery();
 
@@ -79,8 +79,8 @@ class MongodbManager {
 			return null;
 		}
 
-		if( $if_match ){
-			$update_query = array_replace_recursive($if_match,$update_query);
+		if( array_key_exists('if_match',$options) && $options['if_match'] ){
+			$update_query = array_replace_recursive($options['if_match'],$update_query);
 		}
 
 		$this->lastUpdateResult = $this->Collection->updateOne( $Model->getDbRetrieveQuery() , $update_query );
@@ -107,12 +107,12 @@ class MongodbManager {
 		return $document[static::SEQUENCES_PATH][$field];
 	}
 
-	function delete( MongodbModel $Model , array $if_match = [] ) : bool {
+	function delete( MongodbModel $Model , array $options = [] ) : bool {
 		
 		$delete_query = $Model->getDbRetrieveQuery();
 
-		if( $if_match ){
-			$delete_query = array_replace_recursive($if_match,$delete_query);
+		if( array_key_exists('if_match',$options) && $options['if_match'] ){
+			$delete_query = array_replace_recursive($options['if_match'],$delete_query);
 		}
 
 		$this->lastDeleteResult = $this->Collection->deleteOne( $delete_query );
