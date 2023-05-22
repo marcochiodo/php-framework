@@ -64,9 +64,9 @@ class MongodbManager {
 		return $this->Collection->countDocuments( $query );
 	}
 
-	function insert( MongodbModel $Model ) : bool {
+	function insert( MongodbModel $Model , array $options = [] ) : bool {
 		
-		$this->lastInsertOneResult = $this->Collection->insertOne( $Model->getDbInsertQuery() );
+		$this->lastInsertOneResult = $this->Collection->insertOne( $Model->getDbInsertQuery() , $options['db_options']??[] );
 
 		return (bool) $this->lastInsertOneResult->getInsertedCount();
 	}
@@ -85,12 +85,12 @@ class MongodbManager {
 			$retrieve_query = array_replace_recursive($options['if_match'],$retrieve_query);
 		}
 
-		$this->lastUpdateResult = $this->Collection->updateOne( $retrieve_query , $update_query );
+		$this->lastUpdateResult = $this->Collection->updateOne( $retrieve_query , $update_query , $options['db_options']??[] );
 
 		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
 
-	function incSeq( MongodbModel $Model , string $field , int|float $amount ) :int|float|false {
+	function incSeq( MongodbModel $Model , string $field , int|float $amount , array $options = [] ) :int|float|false {
 
 		$document = $this->Collection->findOneAndUpdate($Model->getDbRetrieveQuery(),[
 			'$inc' => [static::SEQUENCES_PATH.'.'.$field => $amount
@@ -100,7 +100,7 @@ class MongodbManager {
 				static::SEQUENCES_PATH.'.'.$field => 1
 			],
 			'returnDocument' => \MongoDB\Operation\FindOneAndUpdate::RETURN_DOCUMENT_AFTER
-		]);
+		] + ($options['db_options']??[]));
 
 		if( ! $document ){
 			return false;
@@ -117,12 +117,12 @@ class MongodbManager {
 			$delete_query = array_replace_recursive($options['if_match'],$delete_query);
 		}
 
-		$this->lastDeleteResult = $this->Collection->deleteOne( $delete_query );
+		$this->lastDeleteResult = $this->Collection->deleteOne( $delete_query , $options['db_options']??[] );
 
 		return (bool) $this->lastDeleteResult->getDeletedCount();
 	}
 
-	function insertSubDocument( MongodbModel $Model , array $parent_chain ) : bool {
+	function insertSubDocument( MongodbModel $Model , array $parent_chain , array $options = [] ) : bool {
 
 		$parent_definition = self::getParentDefinition($parent_chain);
 
@@ -141,7 +141,7 @@ class MongodbManager {
 
 		$query_options = [
 			'arrayFilters' => $parent_definition['array_filters'] ?? []
-		];
+		] + ($options['db_options']??[]);
 
 		$update_query = [
 			'$push' => [
@@ -154,7 +154,7 @@ class MongodbManager {
 		return (bool) $this->lastUpdateResult->getModifiedCount();
 	}
 
-	function updateSubDocument( MongodbModel $Model , array $parent_chain ) : ?bool {
+	function updateSubDocument( MongodbModel $Model , array $parent_chain , array $options = [] ) : ?bool {
 		
 		$update_query = $Model->getDbUpdateQuery();
 		if( ! $update_query ){
@@ -184,7 +184,7 @@ class MongodbManager {
 
 		$query_options = [
 			'arrayFilters' => $parent_definition['array_filters'] ?? []
-		];
+		] + ($options['db_options']??[]);
 
 		$query_options['arrayFilters'][]['last.'.$model_retrieve_query_key] = $model_retrieve_query_value;
 	
@@ -193,7 +193,7 @@ class MongodbManager {
 		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
 
-	function deleteSubDocument( MongodbModel $Model , array $parent_chain ) : bool {
+	function deleteSubDocument( MongodbModel $Model , array $parent_chain , array $options = [] ) : bool {
 
 		$parent_definition = self::getParentDefinition($parent_chain);
 
@@ -204,7 +204,7 @@ class MongodbManager {
 
 		$query_options = [
 			'arrayFilters' => $parent_definition['array_filters'] ?? []
-		];
+		] + ($options['db_options']??[]);
 
 		$update_query = [
 			'$pull' => [
