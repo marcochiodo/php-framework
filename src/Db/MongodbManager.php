@@ -93,8 +93,7 @@ class MongodbManager {
 	function incSeq( MongodbModel $Model , string $field , int|float $amount , array $options = [] ) :int|float|false {
 
 		$document = $this->Collection->findOneAndUpdate($Model->getDbRetrieveQuery(),[
-			'$inc' => [static::SEQUENCES_PATH.'.'.$field => $amount
-			]
+			'$inc' => [static::SEQUENCES_PATH.'.'.$field => $amount]
 		],[
             'projection' => [
 				static::SEQUENCES_PATH.'.'.$field => 1
@@ -107,6 +106,39 @@ class MongodbManager {
 		}
 		
 		return $document[static::SEQUENCES_PATH][$field];
+	}
+
+	function inc( MongodbModel $Model , array $values , array $options = [] ) :bool {
+
+		if( ! $values ){
+			throw new \InvalidArgumentException('values cannot be empty');
+		}
+
+		$projection = [];
+		foreach( $values as $field => $amount ){
+			$Model->{$field};
+			if( (! is_int($amount) && ! is_float($amount)) || $amount === 0 ){
+				throw new \InvalidArgumentException('amount must be int or float != 0');
+			}
+			$projection[$field] = 1;
+		}
+
+		$document = $this->Collection->findOneAndUpdate($Model->getDbRetrieveQuery(),[
+			'$inc' => $values
+		],[
+            'projection' => $projection,
+			'returnDocument' => \MongoDB\Operation\FindOneAndUpdate::RETURN_DOCUMENT_AFTER
+		] + ($options['db_options']??[]));
+
+		if( ! $document ){
+			return false;
+		}
+
+		foreach( $values as $field => $amount ){
+			$Model->{$field} = $document[$field];
+		}
+
+		return true;
 	}
 
 	function delete( MongodbModel $Model , array $options = [] ) : bool {
