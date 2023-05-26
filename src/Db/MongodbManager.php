@@ -35,10 +35,10 @@ class MongodbManager {
 		return $this->queryOne(['_id' => $_id]);
 	}
 
-	function queryOne( mixed $query , array $db_options = [] ) :?MongodbModel {
+	function queryOne( mixed $query , array $options = [] ) :?MongodbModel {
 		$document = $this->Collection->findOne($query,[
 			'typeMap' => self::TYPE_MAP
-		] + $db_options);
+		] + ($options['db_options']??[]));
 
 		if( ! $document ){
 			return null;
@@ -48,10 +48,10 @@ class MongodbManager {
 		return new $class_name($document);
 	}
 
-	function query( mixed $query , array $db_options = [] ) : ModelList {
+	function query( mixed $query , array $options = [] ) : ModelList {
 		$Cursor = $this->Collection->find($query,[
 			'typeMap' => self::TYPE_MAP
-		] + $db_options );
+		] + ($options['db_options']??[]) );
 
 		if( $this->list_class ){
 			return new $this->list_class($Cursor->toArray());
