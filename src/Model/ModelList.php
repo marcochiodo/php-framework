@@ -94,35 +94,35 @@ class ModelList implements \Iterator , \Countable , \ArrayAccess , \JsonSerializ
 		throw new \InvalidArgumentException('Item to delete not exists');
 	}
 
-	function filter( string $field , mixed $is , bool $strict = false ) :static {
+	function filter( string $field , mixed $is , bool $strict = true ) :static {
 
-		$FilteredList = new static($this->class_name);
+		$FilteredList = clone $this;
 
 		foreach ( $this->storage as $item ){
 			$value = $item['class']->{$field} ?? null;
 
-			if( $this->isEqual($value,$is,$strict) ){
-				$FilteredList->add( $item['class'] );
+			if( ! $this->isEqual($value,$is,$strict) ){
+				$FilteredList->remove( $item['class'] );
 			}
 		}
 		
 		return $FilteredList;
 	}
 
-	function filterIn( string $field , array $in , bool $strict = false ) :static {
+	function filterIn( string $field , array $in , bool $strict = true ) :static {
 		
-		$FilteredList = new static($this->class_name);
+		$FilteredList = clone $this;
 
 		foreach ( $this->storage as $item ){
 			$value = $item['class']->{$field} ?? null;
 
-
 			foreach( $in as $is ){
 				if( $this->isEqual($value,$is,$strict) ){
-					$FilteredList->add( $item['class'] );
-					break;
+					continue;
 				}
 			}
+
+			$FilteredList->remove( $item['class'] );
 		}
 		
 		return $FilteredList;
