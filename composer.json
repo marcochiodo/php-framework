@@ -1,7 +1,7 @@
 {
 	"name": "mrblue/framework",
 	"type": "library",
-    "description": "PHP Framework",
+	"description": "PHP Framework",
 	"keywords": [],
 	"license": "MIT",
 	"authors": [
@@ -11,8 +11,8 @@
 		}
 	],
 	"require": {
-		"php": "^8.2",
-		"ext-json" : "*"
+		"php": "8.2 - 8.3",
+		"ext-json": "*"
 	},
 	"require-dev": {
 		"ext-mongodb": "^1.10",
