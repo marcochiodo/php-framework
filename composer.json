@@ -16,11 +16,13 @@
 	},
 	"require-dev": {
 		"ext-mongodb": "^1.10",
-		"mongodb/mongodb": "^1.9"
+		"mongodb/mongodb": "^1.9",
+		"google/cloud-storage": "^1.41"
 	},
 	"suggest": {
 		"ext-mongodb": "^1.10",
-		"mongodb/mongodb": "^1.9"
+		"mongodb/mongodb": "^1.9",
+		"google/cloud-storage": "^1.41"
 	},
 	"autoload": {
 		"psr-4": {
