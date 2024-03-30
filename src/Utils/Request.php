@@ -1,5 +1,7 @@
 <?php
 
+namespace mrblue\framework\Utils;
+
 class Request {
 
     public readonly string $ip;
