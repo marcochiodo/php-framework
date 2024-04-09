@@ -86,7 +86,7 @@ abstract class Model implements \JsonSerializable {
 		foreach ($this->getClassProperties() as $ReflectionProperty) {
 			$key = $ReflectionProperty->getName();
 			$value = $this->{$key};
-			if ($value instanceof Model || $value instanceof ModelList) {
+			if ($value instanceof Model || $value instanceof ModelList || $value instanceof EnumList) {
 				$value = $value->export();
 			}
 
@@ -157,7 +157,7 @@ abstract class Model implements \JsonSerializable {
 		foreach ($this->getClassProperties() as $ReflectionProperty) {
 			$key = $ReflectionProperty->getName();
 			$value = $this->{$key};
-			if ($value instanceof Model || $value instanceof ModelList || $value instanceof \JsonSerializable) {
+			if ($value instanceof \JsonSerializable) {
 				$export[$key] = $value->jsonSerialize();
 			} else {
 				$export[$key] = $this->valueToJson($value);
@@ -221,6 +221,8 @@ abstract class Model implements \JsonSerializable {
 			return $value->value;
 		} elseif ($value instanceof \DateTimeZone) {
 			return $value->getName();
+		} elseif ($value instanceof EnumList) {
+			return $value->export();
 		} else {
 			return $value;
 		}
