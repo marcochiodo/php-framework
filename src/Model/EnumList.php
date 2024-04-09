@@ -9,7 +9,7 @@ class EnumList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializable
     protected string $class_name;
     protected bool $throw_if_non_existent;
 
-    function __construct(string $class_name, array $items = [], bool $throw_if_non_existent) {
+    function __construct(string $class_name, array $items = [], bool $throw_if_non_existent = true) {
         if (!is_a($class_name, \BackedEnum::class, true)) {
             throw new \InvalidArgumentException('class_name is not a BackedEnum');
         }
