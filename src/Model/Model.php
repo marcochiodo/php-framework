@@ -21,6 +21,8 @@ abstract class Model implements \JsonSerializable {
 	private ?array $__class_properties = null;
 	protected array $__updated_fields = [];
 
+	protected bool $__listBulkpdateEnabled = false;
+
 	function __construct(array $data) {
 		$class_properties = $this->getClassProperties();
 		foreach ($class_properties as $ReflectionProperty) {
@@ -100,36 +102,45 @@ abstract class Model implements \JsonSerializable {
 			$prop_type = self::getReflectionPropertyType($ReflectionProperty);
 			$value = $this->{$key};
 
-			if ($value instanceof ModelList || ($prop_type && is_a($prop_type, ModelList::class, true))) {
+			$is_list = $value instanceof ModelList || ($prop_type && is_a($prop_type, ModelList::class, true));
+
+			if ($is_list && !$this->isListBulkpdateEnabled()) {
 				continue;
 			}
 
-			if ($updated_only) {
+			$submodel_update_only = false;
 
-				if (in_array($key, $this->__updated_fields)) {
-					if ($value instanceof Model) {
-						$value = $value->exportToDb();
-						if (!$value) {
-							$value = new \stdClass;
-						}
-					}
-				} else {
-					if ($value instanceof Model) {
-						$value = $value->exportToDb(true);
-						if (!$value) {
-							continue;
-						}
-					} else {
-						continue;
-					}
+			if ($updated_only && !in_array($key, $this->__updated_fields)) {
+
+				if (!$value instanceof Model) {
+					continue;
 				}
-			} else {
-				if ($value instanceof Model) {
-					$value = $value->exportToDb();
-					if (!$value) {
+
+				$submodel_update_only = true;
+			}
+
+			if ($value instanceof Model) {
+
+				$value->setBulkpdateEnabled($this->isListBulkpdateEnabled());
+				$value = $value->exportToDb(updated_only: $submodel_update_only);
+				if (!$value) {
+					if ($submodel_update_only) {
+						continue;
+					} else {
 						$value = new \stdClass;
 					}
 				}
+			} elseif ($value instanceof ModelList) {
+				$list_of_values = [];
+				foreach ($value as $ListModel) {
+					$ListModel->setBulkpdateEnabled($this->isListBulkpdateEnabled());
+					$value_item = $ListModel->exportToDb(updated_only: false);
+					if (!$value_item) {
+						continue;
+					}
+					$list_of_values[] = $value_item;
+				}
+				$value = $list_of_values;
 			}
 
 			if (isset(static::DB_FIELDS_MAP[$key])) {
@@ -225,6 +236,15 @@ abstract class Model implements \JsonSerializable {
 		} else {
 			return $value;
 		}
+	}
+
+	function setBulkpdateEnabled(bool $enabled): self {
+		$this->__listBulkpdateEnabled = $enabled;
+		return $this;
+	}
+
+	function isListBulkpdateEnabled(): bool {
+		return $this->__listBulkpdateEnabled;
 	}
 
 	static function getFinalClass(array $data): string {
