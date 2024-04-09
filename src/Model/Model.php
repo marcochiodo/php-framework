@@ -37,6 +37,8 @@ abstract class Model implements \JsonSerializable {
 					$data[$name] = $ReflectionProperty->getDefaultValue();
 				} elseif ($type && is_a($type, ModelList::class, true) && !$ReflectionProperty->getType()->allowsNull()) {
 					$data[$name] = [];
+				} elseif ($type && is_a($type, EnumList::class, true) && !$ReflectionProperty->getType()->allowsNull()) {
+					$data[$name] = [];
 				} else {
 					$data[$name] = null;
 				}
