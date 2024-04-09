@@ -121,7 +121,7 @@ abstract class Model implements \JsonSerializable {
 
 			if ($value instanceof Model) {
 
-				$value->setBulkpdateEnabled($this->isListBulkpdateEnabled());
+				$value->setListBulkpdateEnabled($this->isListBulkpdateEnabled());
 				$value = $value->exportToDb(updated_only: $submodel_update_only);
 				if (!$value) {
 					if ($submodel_update_only) {
@@ -133,7 +133,7 @@ abstract class Model implements \JsonSerializable {
 			} elseif ($value instanceof ModelList) {
 				$list_of_values = [];
 				foreach ($value as $ListModel) {
-					$ListModel->setBulkpdateEnabled($this->isListBulkpdateEnabled());
+					$ListModel->setListBulkpdateEnabled($this->isListBulkpdateEnabled());
 					$value_item = $ListModel->exportToDb(updated_only: false);
 					if (!$value_item) {
 						continue;
@@ -238,7 +238,7 @@ abstract class Model implements \JsonSerializable {
 		}
 	}
 
-	function setBulkpdateEnabled(bool $enabled): self {
+	function setListBulkpdateEnabled(bool $enabled): self {
 		$this->__listBulkpdateEnabled = $enabled;
 		return $this;
 	}
