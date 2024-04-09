@@ -11,7 +11,8 @@ abstract class Model implements \JsonSerializable {
 	const IGNORE_FIELDS = [
 		'__ignore_fields' => true,
 		'__class_properties' => true,
-		'__updated_fields' => true
+		'__updated_fields' => true,
+		'__listBulkpdateEnabled' => true
 	];
 
 	protected array $__ignore_fields = self::IGNORE_FIELDS;
@@ -20,7 +21,6 @@ abstract class Model implements \JsonSerializable {
 	 */
 	private ?array $__class_properties = null;
 	protected array $__updated_fields = [];
-
 	protected bool $__listBulkpdateEnabled = false;
 
 	function __construct(array $data) {
