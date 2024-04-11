@@ -90,7 +90,7 @@ class CronManager {
             } catch (\Throwable $th) {
                 $run_responses[$CronConfig->name] = false;
                 if ($onRunException) {
-                    $onRunException();
+                    $onRunException($th);
                 }
                 continue;
             }
