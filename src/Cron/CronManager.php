@@ -81,7 +81,7 @@ class CronManager {
             $class = $CronConfig->cron_class;
 
             try {
-                $Instance = new $class;
+                $Instance = new $class($CronConfig);
                 if (!$Instance instanceof CronInterface) {
                     throw new \RuntimeException($class . ' not extends ' . CronInterface::class);
                     continue;
