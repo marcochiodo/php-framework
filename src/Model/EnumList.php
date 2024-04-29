@@ -26,7 +26,7 @@ class EnumList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializable
         return $this;
     }
 
-    function add(int|string $item, $options = []): self {
+    function add(int|string|\BackedEnum $item, $options = []): self {
 
         $item = $this->parse($item);
 
@@ -48,7 +48,7 @@ class EnumList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializable
         return $this;
     }
 
-    function parse(int|string $item): ?\BackedEnum {
+    function parse(int|string|\BackedEnum $item): ?\BackedEnum {
 
         $class_name = $this->class_name;
 
