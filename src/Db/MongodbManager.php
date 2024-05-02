@@ -62,9 +62,10 @@ class MongodbManager {
 	}
 
 	function aggregate(array $pipeline, array $options = []): ModelList {
-		$Results = (array) $this->Collection->aggregate($pipeline, [
-			'typeMap' => self::TYPE_MAP
-		] + ($options['db_options'] ?? []));
+		$Results = $this->Collection->aggregate($pipeline, [
+			'typeMap' => self::TYPE_MAP,
+			'useCursor' => true
+		] + ($options['db_options'] ?? []))->toArray();
 
 		if ($this->list_class) {
 			return new $this->list_class($Results);
