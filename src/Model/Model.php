@@ -12,7 +12,8 @@ abstract class Model implements \JsonSerializable {
 		'__ignore_fields' => true,
 		'__class_properties' => true,
 		'__updated_fields' => true,
-		'__listBulkpdateEnabled' => true
+		'__listBulkpdateEnabled' => true,
+		'__internalStorage' => true
 	];
 
 	protected array $__ignore_fields = self::IGNORE_FIELDS;
@@ -22,8 +23,12 @@ abstract class Model implements \JsonSerializable {
 	private ?array $__class_properties = null;
 	protected array $__updated_fields = [];
 	protected bool $__listBulkpdateEnabled = false;
+	public readonly \ArrayObject $__internalStorage;
 
 	function __construct(array $data) {
+
+		$this->__internalStorage = new \ArrayObject();
+
 		$class_properties = $this->getClassProperties();
 		foreach ($class_properties as $ReflectionProperty) {
 			$name = $ReflectionProperty->getName();
