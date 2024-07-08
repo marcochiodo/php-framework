@@ -61,7 +61,7 @@ class ModelList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializabl
 	}
 
 	function get(mixed $id): ?Model {
-		$primary_field = constant($this->class_name . '::PRIMARY_FIELD');
+		$primary_field = $this->getPrimaryField();
 
 		if (!$primary_field) {
 			throw new \RuntimeException('get method cannot be called if list model has not PRIMARY_FIELD');
@@ -83,15 +83,25 @@ class ModelList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializabl
 		return null;
 	}
 
+	function getOffset(Model $Item): ?int {
+
+		$offset = array_search($Item, $this->storage, true);
+
+		return $offset !== false ? $offset : null;
+	}
+
+	function has(Model $Item): bool {
+		return $this->getOffset($Item) !== null;
+	}
+
 	function remove(Model $Item): void {
-		foreach ($this->storage as $offset => $item) {
-			if ($Item === $item['class']) {
-				$this->offsetUnset($offset);
-				return;
-			}
+
+		$offset = $this->getOffset($Item);
+		if ($offset === null) {
+			throw new \InvalidArgumentException('Item to delete not exists');
 		}
 
-		throw new \InvalidArgumentException('Item to delete not exists');
+		$this->offsetUnset($offset);
 	}
 
 	function filter(string $field, mixed $is, bool $strict = true): static {
@@ -311,5 +321,9 @@ class ModelList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializabl
 		}
 
 		return $export;
+	}
+
+	function getPrimaryField(): ?string {
+		return constant($this->class_name . '::PRIMARY_FIELD');
 	}
 }
