@@ -85,9 +85,13 @@ class ModelList implements \Iterator, \Countable, \ArrayAccess, \JsonSerializabl
 
 	function getOffset(Model $Item): ?int {
 
-		$offset = array_search($Item, $this->storage, true);
+		foreach ($this->storage as $offset => $_item) {
+			if ($Item === $_item['class']) {
+				return $offset;
+			}
+		}
 
-		return $offset !== false ? $offset : null;
+		return null;
 	}
 
 	function has(Model $Item): bool {
