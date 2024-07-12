@@ -17,12 +17,14 @@
 	"require-dev": {
 		"ext-mongodb": "^1.10",
 		"mongodb/mongodb": "^1.9",
-		"google/cloud-storage": "^1.41"
+		"google/cloud-storage": "^1.41",
+		"aws/aws-sdk-php": "^3.311"
 	},
 	"suggest": {
 		"ext-mongodb": "^1.10",
 		"mongodb/mongodb": "^1.9",
-		"google/cloud-storage": "^1.41"
+		"google/cloud-storage": "^1.41",
+		"aws/aws-sdk-php": "^3.311"
 	},
 	"autoload": {
 		"psr-4": {
