@@ -4,10 +4,12 @@ namespace mrblue\framework\Utils;
 
 class Request {
 
-    public readonly string $ip;
-    public readonly string $proto;
-    public readonly string $server_name;
-    public readonly string $port;
+    static private ?self $globalInstance = null;
+
+    public readonly ?string $ip;
+    public readonly ?string $proto;
+    public readonly ?string $server_name;
+    public readonly ?string $port;
     public readonly ?string $user_agent;
     public readonly ?string $accept_language;
     public readonly ?string $origin;
@@ -35,6 +37,14 @@ class Request {
         $this->referer = $_SERVER['HTTP_REFERER'] ?? null;
         $this->host = $_SERVER['HTTP_HOST'] ?? null;
 
-        $this->server_name = ($_SERVER['SERVER_NAME'] ?? null) ?: ($this->host) ?: $_SERVER['SERVER_ADDR'];
+        $this->server_name = $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_ADDR'] ?? null;
+    }
+
+    static function getGlobalInstance(): self {
+        if (!self::$globalInstance) {
+            self::$globalInstance = new self();
+        }
+
+        return self::$globalInstance;
     }
 }
