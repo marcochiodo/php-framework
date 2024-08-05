@@ -104,9 +104,26 @@ class MongodbManager {
 		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
 
+	function getSeq(MongodbModel $Model, string $field): int|float|null {
+
+		$options = [
+			'typeMap' => self::TYPE_MAP,
+			'projection' => [
+				static::SEQUENCES_PATH . '.' . $field => 1
+			]
+		];
+
+		return $this->Collection->findOne(
+			$Model->getDbRetrieveQuery(),
+			$options
+		)[static::SEQUENCES_PATH][$field] ?? null;
+	}
+
 	function incSeq(MongodbModel $Model, string $field, int|float $amount, array $options = []): int|float|false {
 
-		$document = $this->Collection->findOneAndUpdate($Model->getDbRetrieveQuery(), [
+		$retrieve_query = $this->composeRetrieveQuery($Model->getDbRetrieveQuery(), $options);
+
+		$document = $this->Collection->findOneAndUpdate($retrieve_query, [
 			'$inc' => [static::SEQUENCES_PATH . '.' . $field => $amount]
 		], [
 			'projection' => [
@@ -120,6 +137,17 @@ class MongodbManager {
 		}
 
 		return $document[static::SEQUENCES_PATH][$field];
+	}
+
+	function setSeq(MongodbModel $Model, string $field, int|float $value, array $options = []): bool {
+
+		$retrieve_query = $this->composeRetrieveQuery($Model->getDbRetrieveQuery(), $options);
+
+		$this->lastUpdateResult = $this->Collection->updateOne($retrieve_query, [
+			'$set' => [static::SEQUENCES_PATH . '.' . $field => $value]
+		], ($options['db_options'] ?? []));
+
+		return (bool) $this->lastUpdateResult->getMatchedCount();
 	}
 
 	function inc(MongodbModel $Model, array $values, array $options = []): bool {
@@ -334,5 +362,14 @@ class MongodbManager {
 			'retrieve_query' => $retrieve_query,
 			'array_filters' => $array_filters
 		];
+	}
+
+	protected function composeRetrieveQuery(array $base_query, array $options): array {
+
+		if (array_key_exists('if_match', $options) && $options['if_match']) {
+			$base_query = array_replace_recursive($options['if_match'], $base_query);
+		}
+
+		return $base_query;
 	}
 }
