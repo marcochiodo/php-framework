@@ -119,6 +119,21 @@ class MongodbManager {
 		)[static::SEQUENCES_PATH][$field] ?? null;
 	}
 
+	function getAllSeq(MongodbModel $Model): ?array {
+
+		$options = [
+			'typeMap' => self::TYPE_MAP,
+			'projection' => [
+				static::SEQUENCES_PATH => 1
+			]
+		];
+
+		return $this->Collection->findOne(
+			$Model->getDbRetrieveQuery(),
+			$options
+		)[static::SEQUENCES_PATH] ?? null;
+	}
+
 	function incSeq(MongodbModel $Model, string $field, int|float $amount, array $options = []): int|float|false {
 
 		$retrieve_query = $this->composeRetrieveQuery($Model->getDbRetrieveQuery(), $options);
