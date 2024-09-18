@@ -74,7 +74,7 @@ class Request {
                 'fragment'
             ] as $part
         ) {
-            $this->{'server_' . $part} = $request_uri_parts[$part] ?? null;
+            $this->{'request_' . $part} = $request_uri_parts[$part] ?? null;
         }
     }
 
