@@ -7,7 +7,8 @@ class S3ValueManager implements DbValueManagerInterface {
     public array $options = [
         // default values
         'name_prefix' => '',
-        'acl' => 'private'
+        'acl' => 'private',
+        'write_async' => false
     ];
 
     public readonly string $np;
@@ -35,14 +36,20 @@ class S3ValueManager implements DbValueManagerInterface {
 
         $json_content = json_encode($obj_content);
 
-        $this->S3Client->putObject([
+        $put_data = [
             'ACL' => $this->options['acl'],
             'Bucket' => $this->bucket,
             'ContentType' => 'applciation/json',
             'ContentMD5' => base64_encode(hex2bin(md5($json_content))),
             'Body' => $json_content,
             'Key' => $this->getName($key)
-        ]);
+        ];
+
+        if ($this->options['write_async']) {
+            $this->S3Client->putObjectAsync($put_data);
+        } else {
+            $this->S3Client->putObject($put_data);
+        }
 
         return $this->createDbValue($obj_content);
     }
