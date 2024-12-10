@@ -213,20 +213,31 @@ class MongodbManager {
 
 	function insertSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): bool {
 
+		/**
+		 * attualmente non abbiamo un modo per impedire l'inserimento di documenti duplicati
+		 * solo a livello dell'array target. Abilitando la prevenzione si blocca la duplicazione
+		 * su tutti i livelli paralleli. Non è stata trovata una soluzione per ora.
+		 */
+		$prevent_duplicated_child = boolval($options['prevent_duplicated_child'] ?? true);
+
 		$parent_definition = self::getParentDefinition($parent_chain);
 
 		$query_path = implode('.', $parent_definition['query_path']);
 		$update_path = implode('.', $parent_definition['update_path']);
 
-		$retrieve_query = $parent_definition['retrieve_query'] + [
-			'$nor' => [
-				[
-					$query_path => [
-						'$elemMatch' => $Model->getDbRetrieveQuery()
+		$retrieve_query = $parent_definition['retrieve_query'];
+
+		if ($prevent_duplicated_child) {
+			$retrieve_query += [
+				'$nor' => [
+					[
+						$query_path => [
+							'$elemMatch' => $Model->getDbRetrieveQuery()
+						]
 					]
 				]
-			]
-		];
+			];
+		}
 
 		$query_options = [
 			'arrayFilters' => $parent_definition['array_filters'] ?? []
