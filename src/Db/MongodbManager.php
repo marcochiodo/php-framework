@@ -78,14 +78,30 @@ class MongodbManager {
 		return $this->Collection->countDocuments($query);
 	}
 
-	function insert(MongodbModel $Model, array $options = []): bool {
+	function insert(MongodbModel $Model, array $options = []): bool|MongodbExecution {
 
-		$this->lastInsertOneResult = $this->Collection->insertOne($Model->getDbInsertQuery(), $options['db_options'] ?? []);
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
-		return (bool) $this->lastInsertOneResult->getInsertedCount();
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::INSERT_ONE,
+			retrieve_query: null,
+			write_query: $Model->getDbInsertQuery(),
+			options: $options['db_options'] ?? [],
+			name: $dry_run_name
+		);
+
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
 	}
 
-	function update(MongodbModel $Model, array $options = []): ?bool {
+	function update(MongodbModel $Model, array $options = []): null|bool|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		$update_query = $Model->getDbUpdateQuery();
 
@@ -99,9 +115,19 @@ class MongodbManager {
 			$retrieve_query = array_replace_recursive($options['if_match'], $retrieve_query);
 		}
 
-		$this->lastUpdateResult = $this->Collection->updateOne($retrieve_query, $update_query, $options['db_options'] ?? []);
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::UPDATE_ONE,
+			retrieve_query: $retrieve_query,
+			write_query: $update_query,
+			options: $options['db_options'] ?? [],
+			name: $dry_run_name
+		);
 
-		return (bool) $this->lastUpdateResult->getMatchedCount();
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
 	}
 
 	function getSeq(MongodbModel $Model, string $field): int|float|null {
@@ -134,35 +160,63 @@ class MongodbManager {
 		)[static::SEQUENCES_PATH] ?? null;
 	}
 
-	function incSeq(MongodbModel $Model, string $field, int|float $amount, array $options = []): int|float|false {
+	function incSeq(MongodbModel $Model, string $field, int|float $amount, array $options = []): int|float|false|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		$retrieve_query = $this->composeRetrieveQuery($Model->getDbRetrieveQuery(), $options);
 
-		$document = $this->Collection->findOneAndUpdate($retrieve_query, [
+		$update_query = [
 			'$inc' => [static::SEQUENCES_PATH . '.' . $field => $amount]
-		], [
+		];
+		$db_options = [
 			'projection' => [
 				static::SEQUENCES_PATH . '.' . $field => 1
 			],
 			'returnDocument' => \MongoDB\Operation\FindOneAndUpdate::RETURN_DOCUMENT_AFTER
-		] + ($options['db_options'] ?? []));
+		] + ($options['db_options'] ?? []);
 
-		if (!$document) {
-			return false;
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::FIND_ONE_AND_UPDATE,
+			retrieve_query: $retrieve_query,
+			write_query: $update_query,
+			options: $db_options,
+			name: $dry_run_name
+		);
+
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			$this->execute($MongodbExecution);
+
+			return $MongodbExecution->server_result[static::SEQUENCES_PATH][$field] ?? false;
 		}
-
-		return $document[static::SEQUENCES_PATH][$field];
 	}
 
-	function setSeq(MongodbModel $Model, string $field, int|float $value, array $options = []): bool {
+	function setSeq(MongodbModel $Model, string $field, int|float $value, array $options = []): bool|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		$retrieve_query = $this->composeRetrieveQuery($Model->getDbRetrieveQuery(), $options);
-
-		$this->lastUpdateResult = $this->Collection->updateOne($retrieve_query, [
+		$update_query = [
 			'$set' => [static::SEQUENCES_PATH . '.' . $field => $value]
-		], ($options['db_options'] ?? []));
+		];
 
-		return (bool) $this->lastUpdateResult->getMatchedCount();
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::UPDATE_ONE,
+			retrieve_query: $retrieve_query,
+			write_query: $update_query,
+			options: $options['db_options'] ?? [],
+			name: $dry_run_name
+		);
+
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
 	}
 
 	function inc(MongodbModel $Model, array $values, array $options = []): bool {
@@ -198,7 +252,10 @@ class MongodbManager {
 		return true;
 	}
 
-	function delete(MongodbModel $Model, array $options = []): bool {
+	function delete(MongodbModel $Model, array $options = []): bool|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		$delete_query = $Model->getDbRetrieveQuery();
 
@@ -206,12 +263,25 @@ class MongodbManager {
 			$delete_query = array_replace_recursive($options['if_match'], $delete_query);
 		}
 
-		$this->lastDeleteResult = $this->Collection->deleteOne($delete_query, $options['db_options'] ?? []);
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::DELETE_ONE,
+			retrieve_query: $delete_query,
+			write_query: null,
+			options: $options['db_options'] ?? [],
+			name: $dry_run_name
+		);
 
-		return (bool) $this->lastDeleteResult->getDeletedCount();
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
 	}
 
-	function insertSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): bool {
+	function insertSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): bool|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		/**
 		 * attualmente non abbiamo un modo per impedire l'inserimento di documenti duplicati
@@ -249,12 +319,25 @@ class MongodbManager {
 			]
 		];
 
-		$this->lastUpdateResult = $this->Collection->updateOne($retrieve_query, $update_query, $query_options);
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::UPDATE_ONE,
+			retrieve_query: $retrieve_query,
+			write_query: $update_query,
+			options: $query_options,
+			name: $dry_run_name
+		);
 
-		return (bool) $this->lastUpdateResult->getModifiedCount();
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
 	}
 
-	function updateSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): ?bool {
+	function updateSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): null|bool|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		$update_query = $Model->getDbUpdateQuery();
 		if (!$update_query) {
@@ -288,12 +371,25 @@ class MongodbManager {
 
 		$query_options['arrayFilters'][]['last.' . $model_retrieve_query_key] = $model_retrieve_query_value;
 
-		$this->lastUpdateResult = $this->Collection->updateOne($retrieve_query, $update_query, $query_options);
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::UPDATE_ONE,
+			retrieve_query: $retrieve_query,
+			write_query: $update_query,
+			options: $query_options,
+			name: $dry_run_name
+		);
 
-		return (bool) $this->lastUpdateResult->getMatchedCount();
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
 	}
 
-	function deleteSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): bool {
+	function deleteSubDocument(MongodbModel $Model, array $parent_chain, array $options = []): bool|MongodbExecution {
+
+		$dry_run = $options['dry_run'] ?? false;
+		$dry_run_name = $options['dry_run_name'] ?? null;
 
 		$parent_definition = self::getParentDefinition($parent_chain);
 
@@ -311,10 +407,35 @@ class MongodbManager {
 				$update_path => $Model->getDbRetrieveQuery()
 			]
 		];
+		$MongodbExecution = new MongodbExecution(
+			type: MongodbExecution::UPDATE_ONE,
+			retrieve_query: $retrieve_query,
+			write_query: $update_query,
+			options: $query_options,
+			name: $dry_run_name
+		);
 
-		$this->lastUpdateResult = $this->Collection->updateOne($retrieve_query, $update_query, $query_options);
+		if ($dry_run) {
+			return $MongodbExecution;
+		} else {
+			return $this->execute($MongodbExecution);
+		}
+	}
 
-		return (bool) $this->lastUpdateResult->getModifiedCount();
+
+	function execute(MongodbExecution $MongodbExecution): bool {
+
+		$MongodbExecution->execute($this->Collection);
+
+		if ($MongodbExecution->server_result instanceof \MongoDB\InsertOneResult) {
+			$this->lastInsertOneResult = $MongodbExecution->server_result;
+		} elseif ($MongodbExecution->server_result instanceof \MongoDB\UpdateResult) {
+			$this->lastUpdateResult = $MongodbExecution->server_result;
+		} elseif ($MongodbExecution->server_result instanceof \MongoDB\DeleteResult) {
+			$this->lastDeleteResult = $MongodbExecution->server_result;
+		}
+
+		return $MongodbExecution->success;
 	}
 
 	static function getParentDefinition(array $parent_chain): array {
