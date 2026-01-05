@@ -27,16 +27,21 @@ class MongodbExecution {
     ) {
     }
 
-    function execute(Collection $Collection): self {
+    function execute(Collection $Collection, array $execution_options = []): self {
+
+        $options = $this->options;
+        if ($execution_options) {
+            $options = array_replace($options, $execution_options);
+        }
 
         if ($this->type === self::INSERT_ONE) {
-            $this->server_result = $Collection->insertOne($this->write_query, $this->options);
+            $this->server_result = $Collection->insertOne($this->write_query, $options);
         } elseif ($this->type === self::UPDATE_ONE) {
-            $this->server_result = $Collection->updateOne($this->retrieve_query, $this->write_query, $this->options);
+            $this->server_result = $Collection->updateOne($this->retrieve_query, $this->write_query, $options);
         } elseif ($this->type === self::DELETE_ONE) {
-            $this->server_result = $Collection->deleteOne($this->retrieve_query, $this->options);
+            $this->server_result = $Collection->deleteOne($this->retrieve_query, $options);
         } elseif ($this->type === self::FIND_ONE_AND_UPDATE) {
-            $this->server_result = $Collection->findOneAndUpdate($this->retrieve_query, $this->write_query, $this->options);
+            $this->server_result = $Collection->findOneAndUpdate($this->retrieve_query, $this->write_query, $options);
         }
 
         $this->parseServerResult();

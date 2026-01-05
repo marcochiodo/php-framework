@@ -423,9 +423,9 @@ class MongodbManager {
 	}
 
 
-	function execute(MongodbExecution $MongodbExecution): bool {
+	function execute(MongodbExecution $MongodbExecution, array $execution_options = []): bool {
 
-		$MongodbExecution->execute($this->Collection);
+		$MongodbExecution->execute($this->Collection, $execution_options);
 
 		if ($MongodbExecution->server_result instanceof \MongoDB\InsertOneResult) {
 			$this->lastInsertOneResult = $MongodbExecution->server_result;
